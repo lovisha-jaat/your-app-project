@@ -11,7 +11,6 @@ import TaxPlanner from "./pages/TaxPlanner";
 import GoalPlanner from "./pages/GoalPlanner";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
