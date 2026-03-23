@@ -34,6 +34,7 @@ const App = () => (
             <Route path="/simulator" element={<WhatIfSimulator />} />
             <Route path="/personality" element={<MoneyPersonality />} />
             <Route path="/emergency" element={<EmergencyFund />} />
+            <Route path="/chat" element={<AiChat />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
