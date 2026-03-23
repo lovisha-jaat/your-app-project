@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Flame, Receipt, Target, Settings, SlidersHorizontal, Brain, ShieldCheck, MoreHorizontal } from "lucide-react";
+import { LayoutDashboard, Flame, Receipt, Target, Settings, SlidersHorizontal, Brain, ShieldCheck, MoreHorizontal, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 
