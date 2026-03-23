@@ -12,6 +12,9 @@ import GoalPlanner from "./pages/GoalPlanner";
 import WhatIfSimulator from "./pages/WhatIfSimulator";
 import MoneyPersonality from "./pages/MoneyPersonality";
 import EmergencyFund from "./pages/EmergencyFund";
+import AiChat from "./pages/AiChat";
+import MoneyPersonality from "./pages/MoneyPersonality";
+import EmergencyFund from "./pages/EmergencyFund";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
