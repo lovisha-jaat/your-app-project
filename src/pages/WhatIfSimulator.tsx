@@ -45,22 +45,23 @@ function simulateProjection(
 export default function WhatIfSimulator() {
   const { userData, isOnboarded } = useUserData();
 
-  if (!isOnboarded || !userData) return <Navigate to="/" replace />;
-
-  const baseIncome = userData.monthlyIncome;
-  const [expenses, setExpenses] = useState(userData.monthlyExpenses);
+  const baseIncome = userData?.monthlyIncome ?? 0;
+  const [expenses, setExpenses] = useState(userData?.monthlyExpenses ?? 0);
   const [savingsPercent, setSavingsPercent] = useState(
-    Math.round(((baseIncome - userData.monthlyExpenses) / baseIncome) * 100)
+    baseIncome > 0 ? Math.round(((baseIncome - (userData?.monthlyExpenses ?? 0)) / baseIncome) * 100) : 20
   );
 
   const monthlySavings = Math.round(baseIncome * (savingsPercent / 100));
   const monthlyInvestment = Math.round(monthlySavings * 0.5);
-  const currentCorpus = userData.currentSavings + userData.investments;
+  const currentCorpus = (userData?.currentSavings ?? 0) + (userData?.investments ?? 0);
+  const age = userData?.age ?? 25;
 
   const projection = useMemo(
-    () => simulateProjection(currentCorpus, monthlyInvestment, userData.age, expenses * 12),
-    [currentCorpus, monthlyInvestment, userData.age, expenses]
+    () => simulateProjection(currentCorpus, monthlyInvestment, age, expenses * 12),
+    [currentCorpus, monthlyInvestment, age, expenses]
   );
+
+  if (!isOnboarded || !userData) return <Navigate to="/" replace />;
 
   const formatCurrency = (val: number) => {
     if (val >= 10000000) return `₹${(val / 10000000).toFixed(1)}Cr`;
