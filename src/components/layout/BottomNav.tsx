@@ -1,16 +1,17 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Flame, Receipt, Target, Settings, SlidersHorizontal, Brain, ShieldCheck, MoreHorizontal } from "lucide-react";
+import { LayoutDashboard, Flame, Receipt, Target, Settings, SlidersHorizontal, Brain, ShieldCheck, MoreHorizontal, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 
 const PRIMARY_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/fire", label: "FIRE", icon: Flame },
-  { to: "/tax", label: "Tax", icon: Receipt },
+  { to: "/chat", label: "AI Chat", icon: MessageCircle },
   { to: "/goals", label: "Goals", icon: Target },
 ];
 
 const MORE_ITEMS = [
+  { to: "/tax", label: "Tax", icon: Receipt },
   { to: "/simulator", label: "Simulator", icon: SlidersHorizontal },
   { to: "/personality", label: "Personality", icon: Brain },
   { to: "/emergency", label: "Emergency", icon: ShieldCheck },
