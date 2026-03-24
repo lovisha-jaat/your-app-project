@@ -13,10 +13,12 @@ type Msg = { role: "user" | "assistant"; content: string };
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/financial-chat`;
 
 const QUICK_PROMPTS = [
-  "How can I save more tax?",
-  "Should I start a SIP?",
-  "Am I saving enough?",
-  "Explain mutual funds simply",
+  { label: "💰 Tax savings tips", text: "What tax-saving options do I have based on my income? Give me specific amounts for 80C, 80D, and NPS." },
+  { label: "📈 Start investing", text: "I want to start investing. Based on my surplus, suggest a specific SIP plan with fund types and amounts." },
+  { label: "🛡️ Emergency fund", text: "How much should my emergency fund be? What's my current gap and how fast can I fill it?" },
+  { label: "🔥 FIRE plan", text: "Can I retire early? What monthly investment do I need to reach financial independence?" },
+  { label: "💸 Cut expenses", text: "My expenses seem high. Give me a practical budget breakdown and savings targets." },
+  { label: "🎯 My goals", text: "Based on my financial goals, create a priority-ordered action plan with timelines." },
 ];
 
 export default function AiChat() {
@@ -106,6 +108,23 @@ export default function AiChat() {
           }
         }
       }
+
+      // Final flush
+      if (textBuffer.trim()) {
+        for (let raw of textBuffer.split("\n")) {
+          if (!raw) continue;
+          if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+          if (raw.startsWith(":") || raw.trim() === "") continue;
+          if (!raw.startsWith("data: ")) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) upsertAssistant(content);
+          } catch { /* ignore */ }
+        }
+      }
     } catch (e) {
       console.error(e);
       toast({ title: "Error", description: "Failed to get AI response. Please try again.", variant: "destructive" });
@@ -126,12 +145,14 @@ export default function AiChat() {
       {/* Header */}
       <div className="bg-card px-4 pt-6 pb-4 border-b border-border/40 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
-            <Sparkles className="w-4.5 h-4.5 text-primary" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-primary" />
           </div>
           <div>
             <h1 className="text-base font-bold tracking-tight">MoneyWise AI</h1>
-            <p className="text-xs text-muted-foreground">Your personal finance advisor</p>
+            <p className="text-xs text-muted-foreground">
+              Knows your ₹{userData.monthlyIncome.toLocaleString("en-IN")}/mo profile
+            </p>
           </div>
         </div>
       </div>
@@ -139,24 +160,24 @@ export default function AiChat() {
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4 max-w-lg mx-auto w-full">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center py-12 space-y-5">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center h-full text-center py-8 space-y-5">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/15 to-accent/10 flex items-center justify-center">
               <Bot className="w-8 h-8 text-primary" />
             </div>
             <div>
               <p className="text-base font-semibold">Hi! I'm your AI Financial Advisor</p>
               <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-                Ask me anything about your finances — I already know your financial profile.
+                I know your income, expenses, savings & goals. Ask me anything — I'll give you specific, actionable advice.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-2 w-full max-w-xs">
+            <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
               {QUICK_PROMPTS.map((q) => (
                 <button
-                  key={q}
-                  onClick={() => sendMessage(q)}
-                  className="text-xs text-left p-2.5 rounded-xl border border-border/60 text-foreground/70 hover:bg-primary/5 hover:border-primary/30 transition-colors active:scale-[0.97]"
+                  key={q.label}
+                  onClick={() => sendMessage(q.text)}
+                  className="text-xs text-left p-3 rounded-xl border border-border/60 text-foreground/80 hover:bg-primary/5 hover:border-primary/30 transition-all active:scale-[0.97]"
                 >
-                  {q}
+                  {q.label}
                 </button>
               ))}
             </div>
@@ -179,7 +200,7 @@ export default function AiChat() {
               )}
             >
               {msg.role === "assistant" ? (
-                <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-headings:my-2 prose-strong:text-foreground">
+                <div className="prose prose-sm max-w-none prose-p:my-1.5 prose-ul:my-1 prose-li:my-0.5 prose-headings:my-2 prose-strong:text-foreground prose-code:text-primary prose-code:bg-primary/5 prose-code:px-1 prose-code:rounded">
                   <ReactMarkdown>{msg.content}</ReactMarkdown>
                 </div>
               ) : (
