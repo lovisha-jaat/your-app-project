@@ -54,6 +54,7 @@ export default function Dashboard() {
         </div>
 
         <CategoryBreakdown breakdown={breakdown} />
+        <SmartAlerts data={userData} breakdown={breakdown} />
         <InsightsSection insights={insights} />
       </div>
 
