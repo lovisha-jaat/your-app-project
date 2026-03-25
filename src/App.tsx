@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserDataProvider } from "@/context/UserDataContext";
 import Index from "./pages/Index";
+import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import FirePlanner from "./pages/FirePlanner";
 import TaxPlanner from "./pages/TaxPlanner";
