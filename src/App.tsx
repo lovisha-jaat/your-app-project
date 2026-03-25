@@ -4,8 +4,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { UserDataProvider } from "@/context/UserDataContext";
+import { AuthProvider } from "@/context/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Onboarding from "./pages/Onboarding";
+import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import FirePlanner from "./pages/FirePlanner";
 import TaxPlanner from "./pages/TaxPlanner";
@@ -22,26 +25,29 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <UserDataProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/onboarding" element={<Onboarding />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/fire" element={<FirePlanner />} />
-            <Route path="/tax" element={<TaxPlanner />} />
-            <Route path="/goals" element={<GoalPlanner />} />
-            <Route path="/simulator" element={<WhatIfSimulator />} />
-            <Route path="/personality" element={<MoneyPersonality />} />
-            <Route path="/emergency" element={<EmergencyFund />} />
-            <Route path="/chat" element={<AiChat />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </UserDataProvider>
+      <AuthProvider>
+        <UserDataProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/fire" element={<ProtectedRoute><FirePlanner /></ProtectedRoute>} />
+              <Route path="/tax" element={<ProtectedRoute><TaxPlanner /></ProtectedRoute>} />
+              <Route path="/goals" element={<ProtectedRoute><GoalPlanner /></ProtectedRoute>} />
+              <Route path="/simulator" element={<ProtectedRoute><WhatIfSimulator /></ProtectedRoute>} />
+              <Route path="/personality" element={<ProtectedRoute><MoneyPersonality /></ProtectedRoute>} />
+              <Route path="/emergency" element={<ProtectedRoute><EmergencyFund /></ProtectedRoute>} />
+              <Route path="/chat" element={<ProtectedRoute><AiChat /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </UserDataProvider>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

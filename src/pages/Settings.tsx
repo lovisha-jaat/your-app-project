@@ -1,16 +1,24 @@
 import { useUserData } from "@/context/UserDataContext";
+import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/layout/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, User } from "lucide-react";
+import { RotateCcw, User, LogOut } from "lucide-react";
 
 export default function Settings() {
   const { userData, resetData } = useUserData();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleReset = () => {
     resetData();
+    navigate("/");
+  };
+
+  const handleSignOut = async () => {
+    resetData();
+    await signOut();
     navigate("/");
   };
 
@@ -51,6 +59,17 @@ export default function Settings() {
           <RotateCcw className="w-4 h-4 mr-2" />
           Reset & Start Over
         </Button>
+
+        <Button variant="outline" className="w-full active:scale-[0.98] transition-transform" onClick={handleSignOut}>
+          <LogOut className="w-4 h-4 mr-2" />
+          Sign Out
+        </Button>
+
+        {user && (
+          <p className="text-xs text-muted-foreground text-center">
+            Signed in as {user.email}
+          </p>
+        )}
       </div>
 
       <BottomNav />
