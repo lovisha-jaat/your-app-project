@@ -8,10 +8,17 @@ import { RotateCcw, User, LogOut } from "lucide-react";
 
 export default function Settings() {
   const { userData, resetData } = useUserData();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleReset = () => {
     resetData();
+    navigate("/");
+  };
+
+  const handleSignOut = async () => {
+    resetData();
+    await signOut();
     navigate("/");
   };
 
