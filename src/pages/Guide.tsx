@@ -1,4 +1,5 @@
 import BottomNav from "@/components/layout/BottomNav";
+import DemoWalkthrough from "@/components/guide/DemoWalkthrough";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -166,6 +167,9 @@ export default function Guide() {
       </div>
 
       <div className="px-4 py-6 space-y-8 max-w-lg mx-auto">
+        {/* Interactive Demo */}
+        <DemoWalkthrough />
+
         {/* Quick Start Alert */}
         <Card className="border-primary/30 bg-primary/5 shadow-sm">
           <CardContent className="p-4 flex gap-3 items-start">
