@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Flame, Receipt, Target, Settings, SlidersHorizontal, Brain, ShieldCheck, MoreHorizontal, MessageCircle } from "lucide-react";
+import { LayoutDashboard, Flame, Receipt, Target, Settings, SlidersHorizontal, Brain, ShieldCheck, MoreHorizontal, MessageCircle, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useRef, useEffect } from "react";
 
@@ -15,6 +15,7 @@ const MORE_ITEMS = [
   { to: "/simulator", label: "Simulator", icon: SlidersHorizontal },
   { to: "/personality", label: "Personality", icon: Brain },
   { to: "/emergency", label: "Emergency", icon: ShieldCheck },
+  { to: "/guide", label: "Guide", icon: BookOpen },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 

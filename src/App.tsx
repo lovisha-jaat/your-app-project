@@ -18,6 +18,7 @@ import MoneyPersonality from "./pages/MoneyPersonality";
 import EmergencyFund from "./pages/EmergencyFund";
 import AiChat from "./pages/AiChat";
 import Settings from "./pages/Settings";
+import Guide from "./pages/Guide";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="/personality" element={<ProtectedRoute><MoneyPersonality /></ProtectedRoute>} />
               <Route path="/emergency" element={<ProtectedRoute><EmergencyFund /></ProtectedRoute>} />
               <Route path="/chat" element={<ProtectedRoute><AiChat /></ProtectedRoute>} />
+              <Route path="/guide" element={<ProtectedRoute><Guide /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
