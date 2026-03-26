@@ -3,7 +3,7 @@ import { useUserData } from "@/context/UserDataContext";
 import { Navigate } from "react-router-dom";
 import BottomNav from "@/components/layout/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Send, Bot, User, Sparkles } from "lucide-react";
+import { Send, Bot, User, Sparkles, Volume2, VolumeX, Square } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
@@ -21,11 +21,27 @@ const QUICK_PROMPTS = [
   { label: "🎯 My goals", text: "Based on my financial goals, create a priority-ordered action plan with timelines." },
 ];
 
+// Strip markdown for TTS
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/#{1,6}\s/g, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/\*(.*?)\*/g, "$1")
+    .replace(/`(.*?)`/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[-*+]\s/g, "")
+    .replace(/\n{2,}/g, ". ")
+    .replace(/\n/g, " ")
+    .replace(/₹/g, "rupees ")
+    .trim();
+}
+
 export default function AiChat() {
   const { userData, isOnboarded } = useUserData();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
@@ -34,7 +50,45 @@ export default function AiChat() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
+  // Cleanup speech on unmount
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
+
   if (!isOnboarded || !userData) return <Navigate to="/" replace />;
+
+  const speak = (text: string, index: number) => {
+    if (speakingIdx === index) {
+      window.speechSynthesis.cancel();
+      setSpeakingIdx(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const clean = stripMarkdown(text);
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.lang = "en-IN";
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+
+    // Try to pick an Indian English voice
+    const voices = window.speechSynthesis.getVoices();
+    const indianVoice = voices.find(v => v.lang === "en-IN") || voices.find(v => v.lang.startsWith("en"));
+    if (indianVoice) utterance.voice = indianVoice;
+
+    utterance.onend = () => setSpeakingIdx(null);
+    utterance.onerror = () => setSpeakingIdx(null);
+
+    setSpeakingIdx(index);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const stopSpeaking = () => {
+    window.speechSynthesis.cancel();
+    setSpeakingIdx(null);
+  };
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
@@ -169,6 +223,9 @@ export default function AiChat() {
               <p className="text-sm text-muted-foreground mt-1 max-w-xs">
                 I know your income, expenses, savings & goals. Ask me anything — I'll give you specific, actionable advice.
               </p>
+              <p className="text-xs text-muted-foreground/70 mt-2 flex items-center justify-center gap-1">
+                <Volume2 className="w-3 h-3" /> Tap the speaker icon to hear responses read aloud
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-2 w-full max-w-sm">
               {QUICK_PROMPTS.map((q) => (
@@ -191,20 +248,46 @@ export default function AiChat() {
                 <Bot className="w-3.5 h-3.5 text-primary" />
               </div>
             )}
-            <div
-              className={cn(
-                "max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
-                msg.role === "user"
-                  ? "bg-primary text-primary-foreground rounded-br-md"
-                  : "bg-card border border-border/50 rounded-bl-md shadow-sm"
-              )}
-            >
-              {msg.role === "assistant" ? (
-                <div className="prose prose-sm max-w-none prose-p:my-1.5 prose-ul:my-1 prose-li:my-0.5 prose-headings:my-2 prose-strong:text-foreground prose-code:text-primary prose-code:bg-primary/5 prose-code:px-1 prose-code:rounded">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
-                </div>
-              ) : (
-                msg.content
+            <div className="flex flex-col max-w-[80%]">
+              <div
+                className={cn(
+                  "rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed",
+                  msg.role === "user"
+                    ? "bg-primary text-primary-foreground rounded-br-md"
+                    : "bg-card border border-border/50 rounded-bl-md shadow-sm"
+                )}
+              >
+                {msg.role === "assistant" ? (
+                  <div className="prose prose-sm max-w-none prose-p:my-1.5 prose-ul:my-1 prose-li:my-0.5 prose-headings:my-2 prose-strong:text-foreground prose-code:text-primary prose-code:bg-primary/5 prose-code:px-1 prose-code:rounded">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                ) : (
+                  msg.content
+                )}
+              </div>
+              {/* Audio button for assistant messages */}
+              {msg.role === "assistant" && !isLoading && (
+                <button
+                  onClick={() => speakingIdx === i ? stopSpeaking() : speak(msg.content, i)}
+                  className={cn(
+                    "mt-1.5 self-start flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg transition-colors",
+                    speakingIdx === i
+                      ? "text-primary bg-primary/10"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  )}
+                >
+                  {speakingIdx === i ? (
+                    <>
+                      <Square className="w-3 h-3" />
+                      Stop
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 className="w-3 h-3" />
+                      Listen
+                    </>
+                  )}
+                </button>
               )}
             </div>
             {msg.role === "user" && (
