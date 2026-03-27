@@ -3,7 +3,7 @@ import { useUserData } from "@/context/UserDataContext";
 import { Navigate } from "react-router-dom";
 import BottomNav from "@/components/layout/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Send, Bot, User, Sparkles, Volume2, VolumeX, Square } from "lucide-react";
+import { Send, Bot, User, Sparkles, Volume2, VolumeX, Square, Mic, MicOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
