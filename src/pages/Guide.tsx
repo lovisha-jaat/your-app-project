@@ -55,9 +55,9 @@ const APP_STEPS = [
   {
     step: 4,
     title: "Chat with AI Mentor",
-    desc: "Ask any financial question in simple language. Our AI uses YOUR data to give personalized answers — not generic advice.",
+    desc: "Say 'Hello' and the AI will greet you warmly like a friend! Ask any financial question in simple language — it uses YOUR data to give personalized answers, not generic advice. You can also tap 🔊 Listen to hear responses read aloud.",
     icon: MessageCircle,
-    tip: 'Try asking: "How much SIP should I start?" or "How can I save tax?"',
+    tip: 'Try saying "Hi" first! Then ask: "How much SIP should I start?" or "How can I save tax?"',
   },
   {
     step: 5,
