@@ -3,7 +3,7 @@ import { useUserData } from "@/context/UserDataContext";
 import { Navigate } from "react-router-dom";
 import BottomNav from "@/components/layout/BottomNav";
 import { Button } from "@/components/ui/button";
-import { Send, Bot, User, Sparkles, Volume2, VolumeX, Square } from "lucide-react";
+import { Send, Bot, User, Sparkles, Volume2, VolumeX, Square, Mic, MicOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
@@ -42,8 +42,10 @@ export default function AiChat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [speakingIdx, setSpeakingIdx] = useState<number | null>(null);
+  const [isListening, setIsListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -54,8 +56,62 @@ export default function AiChat() {
   useEffect(() => {
     return () => {
       window.speechSynthesis?.cancel();
+      recognitionRef.current?.stop();
     };
   }, []);
+
+  const toggleListening = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({ title: "Not supported", description: "Speech recognition is not supported in your browser. Try Chrome.", variant: "destructive" });
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-IN";
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognitionRef.current = recognition;
+
+    let finalTranscript = "";
+
+    recognition.onstart = () => setIsListening(true);
+
+    recognition.onresult = (event: any) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interim = transcript;
+        }
+      }
+      setInput(finalTranscript || interim);
+    };
+
+    recognition.onend = () => {
+      setIsListening(false);
+      if (finalTranscript.trim()) {
+        sendMessage(finalTranscript.trim());
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      setIsListening(false);
+      if (event.error !== "no-speech") {
+        toast({ title: "Mic error", description: `Could not recognize speech: ${event.error}`, variant: "destructive" });
+      }
+    };
+
+    recognition.start();
+  };
 
   if (!isOnboarded || !userData) return <Navigate to="/" replace />;
 
@@ -317,12 +373,21 @@ export default function AiChat() {
       {/* Input */}
       <div className="border-t border-border/40 bg-card px-4 py-3 shrink-0 mb-14">
         <div className="flex gap-2 items-end max-w-lg mx-auto">
+          <Button
+            size="icon"
+            variant={isListening ? "default" : "outline"}
+            onClick={toggleListening}
+            disabled={isLoading}
+            className={cn("rounded-xl h-10 w-10 shrink-0", isListening && "animate-pulse bg-destructive hover:bg-destructive/90")}
+          >
+            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+          </Button>
           <textarea
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about your finances..."
+            placeholder={isListening ? "Listening..." : "Ask about your finances..."}
             rows={1}
             className="flex-1 resize-none rounded-xl border border-border bg-background px-3.5 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring max-h-24 overflow-y-auto"
           />
