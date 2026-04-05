@@ -32,7 +32,7 @@ function stripMarkdown(text: string): string {
     .replace(/[-*+]\s/g, "")
     .replace(/\n{2,}/g, ". ")
     .replace(/\n/g, " ")
-    .replace(/₹/g, "rupees ")
+    .replace(/[₹$£]/g, "")
     .trim();
 }
 
