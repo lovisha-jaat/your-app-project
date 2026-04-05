@@ -35,7 +35,7 @@ const FEATURES = [
   {
     icon: TrendingUp,
     title: "FIRE Planner",
-    desc: "See when you can retire early and how much SIP you need to get there.",
+    desc: "See when you can retire early and how much you need to invest monthly to get there.",
     color: "text-accent",
     bg: "bg-accent/10",
   },
