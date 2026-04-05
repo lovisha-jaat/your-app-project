@@ -42,7 +42,7 @@ const FEATURES = [
   {
     icon: Shield,
     title: "Tax Optimizer",
-    desc: "Compare old vs new tax regime. Discover savings under 80C, 80D, NPS & more.",
+    desc: "Compare tax regimes for your country. Discover deductions and save more on taxes.",
     color: "text-chart-4",
     bg: "bg-chart-4/10",
   },
