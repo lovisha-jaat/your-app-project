@@ -53,7 +53,7 @@ export default function Auth() {
         {/* Brand */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold">
-            <IndianRupee className="w-4 h-4" />
+            <Banknote className="w-4 h-4" />
             FinMentor AI
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">
