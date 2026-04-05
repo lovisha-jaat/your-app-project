@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { IndianRupee, Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
+import { Banknote, Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Auth() {
