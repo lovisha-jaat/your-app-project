@@ -129,14 +129,13 @@ export default function AiChat() {
     window.speechSynthesis.cancel();
     const clean = stripMarkdown(text);
     const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.lang = "en-IN";
+    utterance.lang = countryLang;
     utterance.rate = 0.95;
     utterance.pitch = 1;
 
-    // Try to pick an Indian English voice
     const voices = window.speechSynthesis.getVoices();
-    const indianVoice = voices.find(v => v.lang === "en-IN") || voices.find(v => v.lang.startsWith("en"));
-    if (indianVoice) utterance.voice = indianVoice;
+    const matchVoice = voices.find(v => v.lang === countryLang) || voices.find(v => v.lang.startsWith("en"));
+    if (matchVoice) utterance.voice = matchVoice;
 
     utterance.onend = () => setSpeakingIdx(null);
     utterance.onerror = () => setSpeakingIdx(null);
