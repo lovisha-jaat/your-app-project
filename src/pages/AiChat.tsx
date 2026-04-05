@@ -7,6 +7,7 @@ import { Send, Bot, User, Sparkles, Volume2, VolumeX, Square, Mic, MicOff } from
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/country-config";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
