@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { IndianRupee, Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
+import { Banknote, Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Auth() {
@@ -53,7 +53,7 @@ export default function Auth() {
         {/* Brand */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold">
-            <IndianRupee className="w-4 h-4" />
+            <Banknote className="w-4 h-4" />
             FinMentor AI
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight">

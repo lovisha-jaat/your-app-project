@@ -1,4 +1,7 @@
+import { CountryCode } from "@/lib/country-config";
+
 export interface UserFinancialData {
+  country: CountryCode;
   age: number;
   monthlyIncome: number;
   monthlyExpenses: number;

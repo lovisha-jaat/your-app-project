@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, TrendingDown, Receipt, CheckCircle2 } from "lucide-react";
 import { UserFinancialData, HealthScoreBreakdown } from "@/types/finance";
+import { formatCurrency } from "@/lib/country-config";
 
 interface SmartAlert {
   type: "warning" | "danger" | "info" | "success";
@@ -11,11 +12,11 @@ interface SmartAlert {
 
 function generateAlerts(data: UserFinancialData, breakdown: HealthScoreBreakdown): SmartAlert[] {
   const alerts: SmartAlert[] = [];
-  const { monthlyIncome, monthlyExpenses, currentSavings, investments } = data;
+  const { monthlyIncome, monthlyExpenses, currentSavings, country } = data;
   const expenseRatio = monthlyIncome > 0 ? monthlyExpenses / monthlyIncome : 1;
   const surplus = monthlyIncome - monthlyExpenses;
+  const fmt = (n: number) => formatCurrency(Math.round(n), country);
 
-  // Overspending
   if (expenseRatio > 0.8) {
     alerts.push({
       type: "danger",
@@ -25,39 +26,34 @@ function generateAlerts(data: UserFinancialData, breakdown: HealthScoreBreakdown
     });
   }
 
-  // Low savings
   if (breakdown.savings < 30) {
     alerts.push({
       type: "warning",
       title: "Low Savings Rate",
-      message: `Your savings rate is below the recommended 20%. You're saving ₹${surplus.toLocaleString("en-IN")}/month — aim for ₹${Math.round(monthlyIncome * 0.2).toLocaleString("en-IN")}.`,
+      message: `Your savings rate is below the recommended 20%. You're saving ${fmt(surplus)}/month — aim for ${fmt(monthlyIncome * 0.2)}.`,
       icon: TrendingDown,
     });
   }
 
-  // Missing tax benefits
   if (data.financialGoals && !data.financialGoals.includes("Pay Off Debt")) {
-    const maxTaxSaving = 150000 + 50000 + 25000; // 80C + NPS + 80D
     alerts.push({
       type: "info",
-      title: "Missing Tax Benefits",
-      message: `You could save up to ₹${maxTaxSaving.toLocaleString("en-IN")} in deductions under 80C, NPS, and 80D. Check the Tax Planner for details.`,
+      title: "Check Tax Benefits",
+      message: "You may be missing out on tax deductions. Check the Tax Planner for country-specific savings.",
       icon: Receipt,
     });
   }
 
-  // Emergency fund gap
   if (breakdown.emergency < 50) {
     const needed = monthlyExpenses * 6 - currentSavings;
     alerts.push({
       type: "warning",
       title: "Emergency Fund Gap",
-      message: `You need ₹${Math.round(needed).toLocaleString("en-IN")} more to cover 6 months of expenses.`,
+      message: `You need ${fmt(needed)} more to cover 6 months of expenses.`,
       icon: AlertTriangle,
     });
   }
 
-  // Positive alert
   if (alerts.length === 0) {
     alerts.push({
       type: "success",
@@ -71,35 +67,13 @@ function generateAlerts(data: UserFinancialData, breakdown: HealthScoreBreakdown
 }
 
 const alertStyles: Record<SmartAlert["type"], { bg: string; border: string; iconColor: string }> = {
-  danger: {
-    bg: "bg-destructive/8",
-    border: "border-destructive/30",
-    iconColor: "text-destructive",
-  },
-  warning: {
-    bg: "bg-accent/8",
-    border: "border-accent/30",
-    iconColor: "text-accent",
-  },
-  info: {
-    bg: "bg-[hsl(var(--info))]/8",
-    border: "border-[hsl(var(--info))]/30",
-    iconColor: "text-[hsl(var(--info))]",
-  },
-  success: {
-    bg: "bg-primary/8",
-    border: "border-primary/30",
-    iconColor: "text-primary",
-  },
+  danger: { bg: "bg-destructive/8", border: "border-destructive/30", iconColor: "text-destructive" },
+  warning: { bg: "bg-accent/8", border: "border-accent/30", iconColor: "text-accent" },
+  info: { bg: "bg-[hsl(var(--info))]/8", border: "border-[hsl(var(--info))]/30", iconColor: "text-[hsl(var(--info))]" },
+  success: { bg: "bg-primary/8", border: "border-primary/30", iconColor: "text-primary" },
 };
 
-export default function SmartAlerts({
-  data,
-  breakdown,
-}: {
-  data: UserFinancialData;
-  breakdown: HealthScoreBreakdown;
-}) {
+export default function SmartAlerts({ data, breakdown }: { data: UserFinancialData; breakdown: HealthScoreBreakdown }) {
   const alerts = generateAlerts(data, breakdown);
 
   return (

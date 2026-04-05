@@ -1,6 +1,7 @@
 import { useUserData } from "@/context/UserDataContext";
 import { Navigate } from "react-router-dom";
 import { calculateFireProjection } from "@/lib/financial-calculations";
+import { formatCurrency, formatCurrencyCompact, COUNTRIES } from "@/lib/country-config";
 import BottomNav from "@/components/layout/BottomNav";
 import { Card, CardContent } from "@/components/ui/card";
 import { Flame, Calendar, Banknote, TrendingUp } from "lucide-react";
@@ -14,12 +15,11 @@ export default function FirePlanner() {
   if (!isOnboarded || !userData) return <Navigate to="/" replace />;
 
   const projection = calculateFireProjection(userData);
+  const country = userData.country;
+  const retAge = COUNTRIES[country]?.retirementAge ?? 65;
 
-  const formatCurrency = (val: number) => {
-    if (val >= 10000000) return `₹${(val / 10000000).toFixed(1)}Cr`;
-    if (val >= 100000) return `₹${(val / 100000).toFixed(1)}L`;
-    return `₹${val.toLocaleString("en-IN")}`;
-  };
+  const fmt = (val: number) => formatCurrencyCompact(val, country);
+  const fmtFull = (val: number) => formatCurrency(val, country);
 
   const stats = [
     {
@@ -30,15 +30,15 @@ export default function FirePlanner() {
       color: "hsl(var(--chart-1))",
     },
     {
-      label: "Monthly SIP Needed",
-      value: formatCurrency(projection.monthlySIPRequired),
-      sub: "to retire by 60",
+      label: "Monthly Investment Needed",
+      value: fmtFull(projection.monthlySIPRequired),
+      sub: `to retire by ${retAge}`,
       icon: Banknote,
       color: "hsl(var(--chart-2))",
     },
     {
       label: "Projected Wealth",
-      value: formatCurrency(projection.futureWealth),
+      value: fmt(projection.futureWealth),
       sub: "at FIRE target",
       icon: TrendingUp,
       color: "hsl(var(--chart-3))",
@@ -47,7 +47,6 @@ export default function FirePlanner() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
       <div className="bg-card px-4 pt-6 pb-5 border-b border-border/40">
         <div className="flex items-center gap-2">
           <Flame className="w-5 h-5 text-accent" />
@@ -57,7 +56,6 @@ export default function FirePlanner() {
       </div>
 
       <div className="px-4 py-6 space-y-5 max-w-lg mx-auto">
-        {/* Stats */}
         <div className="space-y-3">
           {stats.map(({ label, value, sub, icon: Icon, color }) => (
             <Card key={label} className="shadow-sm">
@@ -75,7 +73,6 @@ export default function FirePlanner() {
           ))}
         </div>
 
-        {/* Chart */}
         <Card className="shadow-md">
           <CardContent className="p-4">
             <h2 className="text-base font-semibold mb-4">Wealth Growth Projection</h2>
@@ -93,48 +90,25 @@ export default function FirePlanner() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis
-                    dataKey="year"
-                    tick={{ fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={false}
-                    stroke="hsl(var(--muted-foreground))"
-                  />
-                  <YAxis
-                    tick={{ fontSize: 11 }}
-                    tickLine={false}
-                    axisLine={false}
+                  <XAxis dataKey="year" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} stroke="hsl(var(--muted-foreground))" />
+                  <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false}
                     tickFormatter={(v) => {
-                      if (v >= 10000000) return `${(v / 10000000).toFixed(0)}Cr`;
-                      if (v >= 100000) return `${(v / 100000).toFixed(0)}L`;
+                      if (country === "IN") {
+                        if (v >= 10000000) return `${(v / 10000000).toFixed(0)}Cr`;
+                        if (v >= 100000) return `${(v / 100000).toFixed(0)}L`;
+                      }
+                      if (v >= 1000000) return `${(v / 1000000).toFixed(0)}M`;
                       return `${(v / 1000).toFixed(0)}K`;
                     }}
                     stroke="hsl(var(--muted-foreground))"
                   />
                   <Tooltip
-                    formatter={(val: number, name: string) => [formatCurrency(val), name === "wealth" ? "Total Wealth" : "Amount Invested"]}
+                    formatter={(val: number, name: string) => [fmtFull(val), name === "wealth" ? "Total Wealth" : "Amount Invested"]}
                     labelFormatter={(label) => `Age ${label}`}
-                    contentStyle={{
-                      borderRadius: "0.5rem",
-                      border: "1px solid hsl(var(--border))",
-                      backgroundColor: "hsl(var(--card))",
-                      fontSize: "12px",
-                    }}
+                    contentStyle={{ borderRadius: "0.5rem", border: "1px solid hsl(var(--border))", backgroundColor: "hsl(var(--card))", fontSize: "12px" }}
                   />
-                  <Area
-                    type="monotone"
-                    dataKey="invested"
-                    stroke="hsl(var(--chart-2))"
-                    fill="url(#investedGradient)"
-                    strokeWidth={2}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="wealth"
-                    stroke="hsl(var(--chart-1))"
-                    fill="url(#wealthGradient)"
-                    strokeWidth={2}
-                  />
+                  <Area type="monotone" dataKey="invested" stroke="hsl(var(--chart-2))" fill="url(#investedGradient)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="wealth" stroke="hsl(var(--chart-1))" fill="url(#wealthGradient)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -151,7 +125,6 @@ export default function FirePlanner() {
           </CardContent>
         </Card>
 
-        {/* FIRE explanation */}
         <Card className="shadow-sm bg-accent/5 border-accent/10">
           <CardContent className="p-4">
             <p className="text-sm font-medium mb-1">What is FIRE?</p>

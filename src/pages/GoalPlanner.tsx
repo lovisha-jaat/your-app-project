@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Target, Plus, Trash2, Calendar, IndianRupee, TrendingUp } from "lucide-react";
+import { Target, Plus, Trash2, Calendar, Banknote, TrendingUp } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { formatCurrency, formatCurrencyCompact, COUNTRIES } from "@/lib/country-config";
 
 interface Goal {
   id: string;
@@ -21,28 +21,22 @@ interface Goal {
 }
 
 const GOAL_PRESETS = [
-  { name: "Buy a Car", icon: "🚗", defaultAmount: 800000, defaultYears: 3 },
-  { name: "Buy a House", icon: "🏠", defaultAmount: 5000000, defaultYears: 10 },
-  { name: "Travel Fund", icon: "✈️", defaultAmount: 300000, defaultYears: 2 },
-  { name: "Wedding", icon: "💍", defaultAmount: 2000000, defaultYears: 3 },
-  { name: "Education", icon: "🎓", defaultAmount: 1500000, defaultYears: 5 },
-  { name: "Emergency Fund", icon: "🛡️", defaultAmount: 500000, defaultYears: 1 },
-  { name: "Custom Goal", icon: "🎯", defaultAmount: 500000, defaultYears: 3 },
+  { name: "Buy a Car", icon: "🚗", defaultAmount: 30000, defaultYears: 3 },
+  { name: "Buy a House", icon: "🏠", defaultAmount: 200000, defaultYears: 10 },
+  { name: "Travel Fund", icon: "✈️", defaultAmount: 10000, defaultYears: 2 },
+  { name: "Wedding", icon: "💍", defaultAmount: 50000, defaultYears: 3 },
+  { name: "Education", icon: "🎓", defaultAmount: 80000, defaultYears: 5 },
+  { name: "Emergency Fund", icon: "🛡️", defaultAmount: 20000, defaultYears: 1 },
+  { name: "Custom Goal", icon: "🎯", defaultAmount: 10000, defaultYears: 3 },
 ];
 
-function calcMonthlySIP(target: number, currentSaved: number, years: number, annualReturn = 0.12): number {
+function calcMonthlyInvestment(target: number, currentSaved: number, years: number, annualReturn = 0.12): number {
   const remaining = Math.max(target - currentSaved * Math.pow(1 + annualReturn, years), 0);
   const monthlyRate = annualReturn / 12;
   const months = years * 12;
   if (months === 0) return remaining;
   const factor = (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate;
   return Math.round(remaining / factor);
-}
-
-function formatCurrency(val: number): string {
-  if (val >= 10000000) return `₹${(val / 10000000).toFixed(1)}Cr`;
-  if (val >= 100000) return `₹${(val / 100000).toFixed(1)}L`;
-  return `₹${val.toLocaleString("en-IN")}`;
 }
 
 export default function GoalPlanner() {
@@ -54,6 +48,11 @@ export default function GoalPlanner() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   if (!isOnboarded || !userData) return <Navigate to="/" replace />;
+
+  const country = userData.country;
+  const cc = COUNTRIES[country];
+  const fmt = (n: number) => formatCurrency(n, country);
+  const fmtC = (n: number) => formatCurrencyCompact(n, country);
 
   const handlePresetSelect = (presetName: string) => {
     setSelectedPreset(presetName);
@@ -82,17 +81,7 @@ export default function GoalPlanner() {
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
-    setGoals((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        name: newGoal.name.trim(),
-        icon: newGoal.icon,
-        targetAmount: amt,
-        timelineYears: yrs,
-        currentSaved: saved,
-      },
-    ]);
+    setGoals((prev) => [...prev, { id: crypto.randomUUID(), name: newGoal.name.trim(), icon: newGoal.icon, targetAmount: amt, timelineYears: yrs, currentSaved: saved }]);
     setNewGoal({ name: "", targetAmount: "", timelineYears: "", currentSaved: "0", icon: "🎯" });
     setSelectedPreset("");
     setShowAdd(false);
@@ -100,7 +89,7 @@ export default function GoalPlanner() {
 
   const removeGoal = (id: string) => setGoals((prev) => prev.filter((g) => g.id !== id));
 
-  const totalMonthlySIP = goals.reduce((sum, g) => sum + calcMonthlySIP(g.targetAmount, g.currentSaved, g.timelineYears), 0);
+  const totalMonthly = goals.reduce((sum, g) => sum + calcMonthlyInvestment(g.targetAmount, g.currentSaved, g.timelineYears), 0);
   const surplus = userData.monthlyIncome - userData.monthlyExpenses;
 
   return (
@@ -114,29 +103,25 @@ export default function GoalPlanner() {
       </div>
 
       <div className="px-4 py-6 space-y-5 max-w-lg mx-auto">
-        {/* Summary */}
         {goals.length > 0 && (
           <div className="grid grid-cols-2 gap-3">
             <Card className="shadow-sm">
               <CardContent className="p-3.5 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Total SIP Needed</p>
-                <p className="text-lg font-bold text-primary tabular-nums">{formatCurrency(totalMonthlySIP)}/mo</p>
+                <p className="text-xs text-muted-foreground mb-1">Monthly Investment Needed</p>
+                <p className="text-lg font-bold text-primary tabular-nums">{fmt(totalMonthly)}/mo</p>
               </CardContent>
             </Card>
             <Card className="shadow-sm">
               <CardContent className="p-3.5 text-center">
                 <p className="text-xs text-muted-foreground mb-1">Surplus Available</p>
-                <p className={`text-lg font-bold tabular-nums ${surplus >= totalMonthlySIP ? "text-primary" : "text-destructive"}`}>
-                  {formatCurrency(surplus)}/mo
-                </p>
+                <p className={`text-lg font-bold tabular-nums ${surplus >= totalMonthly ? "text-primary" : "text-destructive"}`}>{fmt(surplus)}/mo</p>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* Goal Cards */}
         {goals.map((goal) => {
-          const sip = calcMonthlySIP(goal.targetAmount, goal.currentSaved, goal.timelineYears);
+          const monthly = calcMonthlyInvestment(goal.targetAmount, goal.currentSaved, goal.timelineYears);
           const progressPct = Math.min(Math.round((goal.currentSaved / goal.targetAmount) * 100), 100);
           const targetDate = new Date();
           targetDate.setFullYear(targetDate.getFullYear() + goal.timelineYears);
@@ -149,32 +134,25 @@ export default function GoalPlanner() {
                     <span className="text-2xl">{goal.icon}</span>
                     <div>
                       <p className="font-semibold text-sm">{goal.name}</p>
-                      <p className="text-xs text-muted-foreground">{formatCurrency(goal.targetAmount)} target</p>
+                      <p className="text-xs text-muted-foreground">{fmt(goal.targetAmount)} target</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => removeGoal(goal.id)}
-                    className="p-1.5 text-muted-foreground hover:text-destructive transition-colors active:scale-95"
-                  >
+                  <button onClick={() => removeGoal(goal.id)} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors active:scale-95">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
-
-                {/* Progress */}
                 <div className="mb-3">
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-muted-foreground">Saved {formatCurrency(goal.currentSaved)}</span>
+                    <span className="text-muted-foreground">Saved {fmt(goal.currentSaved)}</span>
                     <span className="font-medium">{progressPct}%</span>
                   </div>
                   <Progress value={progressPct} className="h-2" />
                 </div>
-
-                {/* Stats */}
                 <div className="grid grid-cols-3 gap-2">
                   <div className="bg-muted/50 rounded-lg p-2 text-center">
-                    <IndianRupee className="w-3.5 h-3.5 mx-auto text-muted-foreground mb-0.5" />
-                    <p className="text-xs font-bold tabular-nums">{formatCurrency(sip)}</p>
-                    <p className="text-[10px] text-muted-foreground">Monthly SIP</p>
+                    <Banknote className="w-3.5 h-3.5 mx-auto text-muted-foreground mb-0.5" />
+                    <p className="text-xs font-bold tabular-nums">{fmtC(monthly)}</p>
+                    <p className="text-[10px] text-muted-foreground">Monthly</p>
                   </div>
                   <div className="bg-muted/50 rounded-lg p-2 text-center">
                     <Calendar className="w-3.5 h-3.5 mx-auto text-muted-foreground mb-0.5" />
@@ -184,7 +162,7 @@ export default function GoalPlanner() {
                   <div className="bg-muted/50 rounded-lg p-2 text-center">
                     <TrendingUp className="w-3.5 h-3.5 mx-auto text-muted-foreground mb-0.5" />
                     <p className="text-xs font-bold tabular-nums">
-                      {targetDate.toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
+                      {targetDate.toLocaleDateString(cc.currency.locale, { month: "short", year: "numeric" })}
                     </p>
                     <p className="text-[10px] text-muted-foreground">Target</p>
                   </div>
@@ -194,7 +172,6 @@ export default function GoalPlanner() {
           );
         })}
 
-        {/* Empty state */}
         {goals.length === 0 && !showAdd && (
           <Card className="shadow-sm">
             <CardContent className="p-8 text-center">
@@ -208,118 +185,61 @@ export default function GoalPlanner() {
           </Card>
         )}
 
-        {/* Add Goal Form */}
         {showAdd && (
           <Card className="shadow-md ring-1 ring-primary/20">
             <CardContent className="p-4 space-y-4">
               <h2 className="text-base font-semibold">New Goal</h2>
-
               <div>
                 <Label className="text-sm mb-1.5 block">Choose a goal type</Label>
                 <div className="flex flex-wrap gap-2">
                   {GOAL_PRESETS.map((p) => (
-                    <Badge
-                      key={p.name}
-                      variant={selectedPreset === p.name ? "default" : "outline"}
-                      className={`cursor-pointer py-2 px-3 text-xs active:scale-95 transition-all ${
-                        selectedPreset === p.name ? "bg-primary text-primary-foreground" : ""
-                      }`}
-                      onClick={() => handlePresetSelect(p.name)}
-                    >
+                    <Badge key={p.name} variant={selectedPreset === p.name ? "default" : "outline"} className={`cursor-pointer py-2 px-3 text-xs active:scale-95 transition-all ${selectedPreset === p.name ? "bg-primary text-primary-foreground" : ""}`} onClick={() => handlePresetSelect(p.name)}>
                       {p.icon} {p.name}
                     </Badge>
                   ))}
                 </div>
               </div>
-
               <div>
                 <Label className="text-sm mb-1.5 block">Goal Name</Label>
-                <Input
-                  value={newGoal.name}
-                  onChange={(e) => setNewGoal((p) => ({ ...p, name: e.target.value }))}
-                  placeholder="e.g. Dream Vacation"
-                  className="h-11"
-                />
+                <Input value={newGoal.name} onChange={(e) => setNewGoal((p) => ({ ...p, name: e.target.value }))} placeholder="e.g. Dream Vacation" className="h-11" />
                 {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
               </div>
-
               <div>
-                <Label className="text-sm mb-1.5 block">Target Amount (₹)</Label>
-                <Input
-                  type="number"
-                  inputMode="numeric"
-                  value={newGoal.targetAmount}
-                  onChange={(e) => setNewGoal((p) => ({ ...p, targetAmount: e.target.value }))}
-                  placeholder="e.g. 500000"
-                  className="h-11"
-                />
+                <Label className="text-sm mb-1.5 block">Target Amount ({cc.currency.symbol})</Label>
+                <Input type="number" inputMode="numeric" value={newGoal.targetAmount} onChange={(e) => setNewGoal((p) => ({ ...p, targetAmount: e.target.value }))} placeholder="e.g. 50000" className="h-11" />
                 {errors.targetAmount && <p className="text-xs text-destructive mt-1">{errors.targetAmount}</p>}
               </div>
-
               <div>
                 <Label className="text-sm mb-1.5 block">Timeline (years)</Label>
-                <Input
-                  type="number"
-                  inputMode="numeric"
-                  value={newGoal.timelineYears}
-                  onChange={(e) => setNewGoal((p) => ({ ...p, timelineYears: e.target.value }))}
-                  placeholder="e.g. 3"
-                  className="h-11"
-                />
+                <Input type="number" inputMode="numeric" value={newGoal.timelineYears} onChange={(e) => setNewGoal((p) => ({ ...p, timelineYears: e.target.value }))} placeholder="e.g. 3" className="h-11" />
                 {errors.timelineYears && <p className="text-xs text-destructive mt-1">{errors.timelineYears}</p>}
               </div>
-
               <div>
-                <Label className="text-sm mb-1.5 block">Already Saved (₹)</Label>
-                <Input
-                  type="number"
-                  inputMode="numeric"
-                  value={newGoal.currentSaved}
-                  onChange={(e) => setNewGoal((p) => ({ ...p, currentSaved: e.target.value }))}
-                  placeholder="0"
-                  className="h-11"
-                />
+                <Label className="text-sm mb-1.5 block">Already Saved ({cc.currency.symbol})</Label>
+                <Input type="number" inputMode="numeric" value={newGoal.currentSaved} onChange={(e) => setNewGoal((p) => ({ ...p, currentSaved: e.target.value }))} placeholder="0" className="h-11" />
                 {errors.currentSaved && <p className="text-xs text-destructive mt-1">{errors.currentSaved}</p>}
               </div>
-
               <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  className="flex-1 active:scale-[0.98] transition-transform"
-                  onClick={() => { setShowAdd(false); setErrors({}); }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  className="flex-1 active:scale-[0.98] transition-transform"
-                  onClick={validateAndAdd}
-                >
-                  Add Goal
-                </Button>
+                <Button variant="outline" className="flex-1 active:scale-[0.98] transition-transform" onClick={() => { setShowAdd(false); setErrors({}); }}>Cancel</Button>
+                <Button className="flex-1 active:scale-[0.98] transition-transform" onClick={validateAndAdd}>Add Goal</Button>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Add more button */}
         {goals.length > 0 && !showAdd && (
-          <Button
-            variant="outline"
-            className="w-full h-11 active:scale-[0.98] transition-transform"
-            onClick={() => setShowAdd(true)}
-          >
+          <Button variant="outline" className="w-full h-11 active:scale-[0.98] transition-transform" onClick={() => setShowAdd(true)}>
             <Plus className="w-4 h-4 mr-1" /> Add Another Goal
           </Button>
         )}
 
-        {/* Feasibility check */}
         {goals.length > 0 && (
-          <Card className={`shadow-sm ${totalMonthlySIP <= surplus ? "bg-primary/5 border-primary/15" : "bg-destructive/5 border-destructive/15"}`}>
+          <Card className={`shadow-sm ${totalMonthly <= surplus ? "bg-primary/5 border-primary/15" : "bg-destructive/5 border-destructive/15"}`}>
             <CardContent className="p-4">
               <p className="text-sm font-medium">
-                {totalMonthlySIP <= surplus
+                {totalMonthly <= surplus
                   ? "✅ Your goals are achievable with your current surplus!"
-                  : `⚠️ You need ${formatCurrency(totalMonthlySIP - surplus)}/mo more to hit all goals. Consider extending timelines or increasing income.`}
+                  : `⚠️ You need ${fmt(totalMonthly - surplus)}/mo more to hit all goals. Consider extending timelines or increasing income.`}
               </p>
             </CardContent>
           </Card>

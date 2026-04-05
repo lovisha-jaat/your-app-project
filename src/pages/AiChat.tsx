@@ -7,14 +7,15 @@ import { Send, Bot, User, Sparkles, Volume2, VolumeX, Square, Mic, MicOff } from
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import { useToast } from "@/hooks/use-toast";
+import { formatCurrency } from "@/lib/country-config";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/financial-chat`;
 
 const QUICK_PROMPTS = [
-  { label: "💰 Tax savings tips", text: "What tax-saving options do I have based on my income? Give me specific amounts for 80C, 80D, and NPS." },
-  { label: "📈 Start investing", text: "I want to start investing. Based on my surplus, suggest a specific SIP plan with fund types and amounts." },
+  { label: "💰 Tax savings tips", text: "What tax-saving options do I have based on my income? Give me specific amounts." },
+  { label: "📈 Start investing", text: "I want to start investing. Based on my surplus, suggest a specific investment plan with fund types and amounts." },
   { label: "🛡️ Emergency fund", text: "How much should my emergency fund be? What's my current gap and how fast can I fill it?" },
   { label: "🔥 FIRE plan", text: "Can I retire early? What monthly investment do I need to reach financial independence?" },
   { label: "💸 Cut expenses", text: "My expenses seem high. Give me a practical budget breakdown and savings targets." },
@@ -32,7 +33,7 @@ function stripMarkdown(text: string): string {
     .replace(/[-*+]\s/g, "")
     .replace(/\n{2,}/g, ". ")
     .replace(/\n/g, " ")
-    .replace(/₹/g, "rupees ")
+    .replace(/[₹$£]/g, "")
     .trim();
 }
 
@@ -74,7 +75,7 @@ export default function AiChat() {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = "en-IN";
+    recognition.lang = (window as any).__speechLang || "en-US";
     recognition.interimResults = true;
     recognition.continuous = false;
     recognitionRef.current = recognition;
@@ -115,6 +116,10 @@ export default function AiChat() {
 
   if (!isOnboarded || !userData) return <Navigate to="/" replace />;
 
+  // Set speech lang based on user's country
+  const countryLang = userData.country === "IN" ? "en-IN" : userData.country === "GB" ? "en-GB" : userData.country === "AU" ? "en-AU" : userData.country === "CA" ? "en-CA" : "en-US";
+  (window as any).__speechLang = countryLang;
+
   const speak = (text: string, index: number) => {
     if (speakingIdx === index) {
       window.speechSynthesis.cancel();
@@ -125,14 +130,13 @@ export default function AiChat() {
     window.speechSynthesis.cancel();
     const clean = stripMarkdown(text);
     const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.lang = "en-IN";
+    utterance.lang = countryLang;
     utterance.rate = 0.95;
     utterance.pitch = 1;
 
-    // Try to pick an Indian English voice
     const voices = window.speechSynthesis.getVoices();
-    const indianVoice = voices.find(v => v.lang === "en-IN") || voices.find(v => v.lang.startsWith("en"));
-    if (indianVoice) utterance.voice = indianVoice;
+    const matchVoice = voices.find(v => v.lang === countryLang) || voices.find(v => v.lang.startsWith("en"));
+    if (matchVoice) utterance.voice = matchVoice;
 
     utterance.onend = () => setSpeakingIdx(null);
     utterance.onerror = () => setSpeakingIdx(null);
@@ -259,9 +263,9 @@ export default function AiChat() {
             <Sparkles className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-base font-bold tracking-tight">MoneyWise AI</h1>
+            <h1 className="text-base font-bold tracking-tight">FinMentor AI</h1>
             <p className="text-xs text-muted-foreground">
-              Knows your ₹{userData.monthlyIncome.toLocaleString("en-IN")}/mo profile
+              Knows your {formatCurrency(userData.monthlyIncome, userData.country)}/mo profile
             </p>
           </div>
         </div>

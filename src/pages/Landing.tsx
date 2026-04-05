@@ -28,28 +28,28 @@ const FEATURES = [
   {
     icon: Brain,
     title: "AI Chat Mentor",
-    desc: "Ask anything about SIP, PPF, NPS, taxes — get personalized answers using your data.",
+    desc: "Ask anything about investing, taxes, or budgeting — get personalized answers using your data.",
     color: "text-chart-2",
     bg: "bg-chart-2/10",
   },
   {
     icon: TrendingUp,
     title: "FIRE Planner",
-    desc: "See when you can retire early and how much SIP you need to get there.",
+    desc: "See when you can retire early and how much you need to invest monthly to get there.",
     color: "text-accent",
     bg: "bg-accent/10",
   },
   {
     icon: Shield,
     title: "Tax Optimizer",
-    desc: "Compare old vs new tax regime. Discover savings under 80C, 80D, NPS & more.",
+    desc: "Compare tax regimes for your country. Discover deductions and save more on taxes.",
     color: "text-chart-4",
     bg: "bg-chart-4/10",
   },
   {
     icon: Target,
     title: "Goal Planner",
-    desc: "Plan for a car, house, or vacation — we calculate the monthly SIP needed.",
+    desc: "Plan for a car, house, or vacation — we calculate the monthly investment needed.",
     color: "text-destructive",
     bg: "bg-destructive/10",
   },
@@ -107,7 +107,7 @@ export default function Landing() {
           </h1>
 
           <p className="text-muted-foreground text-lg leading-relaxed max-w-md mx-auto">
-            AI-powered financial planning built for India. Get your money health score, save taxes, plan retirement & build wealth — all in one place.
+            AI-powered financial planning for everyone. Get your money health score, save taxes, plan retirement & build wealth — all in one place.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
@@ -213,13 +213,13 @@ export default function Landing() {
       <section className="px-4 py-14 bg-card/50 border-t border-border/40">
         <div className="max-w-lg mx-auto text-center space-y-6">
           <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-3 py-1.5 rounded-full text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" /> Built for India
+            <Sparkles className="w-3.5 h-3.5" /> Built for Everyone
           </div>
           <h2 className="text-2xl font-bold tracking-tight">
             Ready to take control of your finances?
           </h2>
           <p className="text-muted-foreground max-w-sm mx-auto">
-            Join thousands of Indians who are building a smarter financial future with AI-powered guidance.
+            Join thousands of users worldwide who are building a smarter financial future with AI-powered guidance.
           </p>
           <Button
             size="lg"
@@ -234,7 +234,7 @@ export default function Landing() {
 
       {/* Footer */}
       <footer className="px-4 py-6 text-center text-xs text-muted-foreground border-t border-border/40">
-        <p>© 2026 FinMentor AI · Your AI-powered financial companion for India</p>
+        <p>© 2026 FinMentor AI · Your AI-powered financial companion</p>
       </footer>
     </div>
   );

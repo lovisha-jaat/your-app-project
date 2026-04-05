@@ -6,12 +6,45 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const COUNTRY_CONFIG: Record<string, { currency: string; locale: string; instruments: string; taxInfo: string }> = {
+  IN: {
+    currency: "₹", locale: "en-IN",
+    instruments: "PPF (7.1%), ELSS, NPS, Nifty 50 index funds, FDs, SIPs",
+    taxInfo: "For tax: reference 80C (₹1.5L), 80D (₹25-75K), 80CCD(1B) (₹50K), Section 24 (₹2L). Use Indian number format (lakhs, crores).",
+  },
+  US: {
+    currency: "$", locale: "en-US",
+    instruments: "401(k), Roth IRA, Traditional IRA, S&P 500 index funds, HSA, Treasury bonds",
+    taxInfo: "For tax: reference Standard Deduction ($14,600), 401(k) ($23,000 limit), IRA ($7,000 limit), HSA ($4,150 limit). Use US dollar formatting.",
+  },
+  GB: {
+    currency: "£", locale: "en-GB",
+    instruments: "ISA, Stocks & Shares ISA, SIPP, Workplace Pension, LISA, Premium Bonds",
+    taxInfo: "For tax: reference Personal Allowance (£12,570), ISA (£20,000), Pension Annual Allowance (£60,000), LISA (£4,000 + 25% bonus). Use British pound formatting.",
+  },
+  CA: {
+    currency: "C$", locale: "en-CA",
+    instruments: "RRSP, TFSA, FHSA, GICs, Canadian index ETFs, CPP",
+    taxInfo: "For tax: reference RRSP (18% of income, max C$31,560), TFSA (C$7,000), Basic Personal Amount (C$15,705), FHSA (C$8,000). Use Canadian dollar formatting.",
+  },
+  AU: {
+    currency: "A$", locale: "en-AU",
+    instruments: "Superannuation, ETFs, Term Deposits, Australian shares, Govt bonds",
+    taxInfo: "For tax: reference Super contributions (A$27,500 concessional cap), Tax-Free Threshold (A$18,200), Medicare Levy (2%), HELP repayment. Use Australian dollar formatting.",
+  },
+};
+
 function buildSystemPrompt(userData: any): string {
   if (!userData) {
-    return "You are MoneyWise AI, a personal finance advisor for Indian users. Ask the user to complete onboarding first.";
+    return "You are FinMentor AI, a personal finance advisor. Ask the user to complete onboarding first.";
   }
 
-  const { age, monthlyIncome, monthlyExpenses, currentSavings, investments, financialGoals } = userData;
+  const { age, monthlyIncome, monthlyExpenses, currentSavings, investments, financialGoals, country } = userData;
+  const cc = COUNTRY_CONFIG[country] || COUNTRY_CONFIG["US"];
+  const sym = cc.currency;
+  const locale = cc.locale;
+
+  const fmt = (n: number) => `${sym}${n.toLocaleString(locale)}`;
   const surplus = monthlyIncome - monthlyExpenses;
   const savingsRate = monthlyIncome > 0 ? ((surplus / monthlyIncome) * 100).toFixed(1) : "0";
   const emergencyMonths = monthlyExpenses > 0 ? (currentSavings / monthlyExpenses).toFixed(1) : "0";
@@ -21,42 +54,45 @@ function buildSystemPrompt(userData: any): string {
   const fireTarget = monthlyExpenses * 12 * 25;
   const fireProgress = fireTarget > 0 ? ((netWorth / fireTarget) * 100).toFixed(1) : "0";
 
-  return `You are MoneyWise AI — a warm, knowledgeable personal finance mentor built for Indians. You speak like a trusted elder sibling who happens to be a finance expert.
+  return `You are FinMentor AI — a warm, knowledgeable personal finance mentor. You speak like a trusted friend who happens to be a finance expert.
+
+## USER'S COUNTRY: ${country}
+## CURRENCY: ${sym}
 
 ## USER'S COMPLETE FINANCIAL SNAPSHOT
 - Age: ${age} years
-- Monthly Income: ₹${monthlyIncome.toLocaleString("en-IN")} (Annual: ₹${annualIncome.toLocaleString("en-IN")})
-- Monthly Expenses: ₹${monthlyExpenses.toLocaleString("en-IN")} (${expenseRatio}% of income)
-- Monthly Surplus: ₹${surplus.toLocaleString("en-IN")}
+- Monthly Income: ${fmt(monthlyIncome)} (Annual: ${fmt(annualIncome)})
+- Monthly Expenses: ${fmt(monthlyExpenses)} (${expenseRatio}% of income)
+- Monthly Surplus: ${fmt(surplus)}
 - Savings Rate: ${savingsRate}%
-- Current Savings: ₹${currentSavings.toLocaleString("en-IN")}
-- Total Investments: ₹${investments.toLocaleString("en-IN")}
-- Net Worth: ₹${netWorth.toLocaleString("en-IN")}
+- Current Savings: ${fmt(currentSavings)}
+- Total Investments: ${fmt(investments)}
+- Net Worth: ${fmt(netWorth)}
 - Emergency Fund Coverage: ${emergencyMonths} months of expenses
-- FIRE Target (25x annual expenses): ₹${fireTarget.toLocaleString("en-IN")}
+- FIRE Target (25x annual expenses): ${fmt(fireTarget)}
 - FIRE Progress: ${fireProgress}%
 - Financial Goals: ${financialGoals?.join(", ") || "Not specified"}
 
 ## ALERTS
 ${parseFloat(savingsRate) < 20 ? `⚠️ LOW SAVINGS: Only ${savingsRate}% savings rate. Ideal is 20%+.` : "✅ Savings rate healthy."}
-${parseFloat(emergencyMonths) < 6 ? `⚠️ EMERGENCY GAP: Only ${emergencyMonths} months covered. Gap: ₹${Math.max(0, Math.round(monthlyExpenses * 6 - currentSavings)).toLocaleString("en-IN")}.` : "✅ Emergency fund adequate."}
+${parseFloat(emergencyMonths) < 6 ? `⚠️ EMERGENCY GAP: Only ${emergencyMonths} months covered. Gap: ${fmt(Math.max(0, Math.round(monthlyExpenses * 6 - currentSavings)))}.` : "✅ Emergency fund adequate."}
 ${investments === 0 ? "🔴 NO INVESTMENTS: Zero invested. Must start ASAP." : ""}
 ${parseFloat(expenseRatio) > 80 ? "🔴 OVERSPENDING: Expenses >80% of income." : ""}
 
 ## CRITICAL RESPONSE RULES
-1. **GREETINGS:** If the user's message includes a greeting (hello, hi, hey, how are you, etc.), start with a warm acknowledgment like "Hey! Great to hear from you 😊". If the same message ALSO contains a question or request, answer that question immediately after the greeting in the SAME response. If it's ONLY a greeting with no question, greet them and suggest 2-3 specific things you can help with based on their data.
-2. **ANSWER EXACTLY WHAT THEY ASKED.** Do NOT default to a generic financial overview. If they ask about tax → talk ONLY about tax. If they ask about SIP → talk ONLY about SIP.
-3. ALWAYS plug in their real numbers. Never say "your income" — say "your ₹${monthlyIncome.toLocaleString("en-IN")}/month".
-4. Calculate specific amounts: "From your ₹${surplus.toLocaleString("en-IN")} surplus, put ₹X here, ₹Y there."
+1. **GREETINGS:** If the user's message includes a greeting, start with a warm acknowledgment. If the same message ALSO contains a question, answer that immediately after the greeting in the SAME response.
+2. **ANSWER EXACTLY WHAT THEY ASKED.** Do NOT default to a generic overview.
+3. ALWAYS plug in their real numbers. Never say "your income" — say "your ${fmt(monthlyIncome)}/month".
+4. Calculate specific amounts: "From your ${fmt(surplus)} surplus, put ${sym}X here, ${sym}Y there."
 5. Keep it SHORT: 2-3 paragraphs max. Use bullet points for action items.
 7. End every response with ONE specific next step they can do TODAY.
-8. Use Indian financial instruments: PPF (7.1%), ELSS, NPS, Nifty 50 index funds, FDs, etc.
-9. Use ₹ and Indian number format (lakhs, crores).
-10. NEVER repeat the same structure or opening line across different questions. Vary your response style.
+8. Use financial instruments relevant to the user's country: ${cc.instruments}
+9. ${cc.taxInfo}
+10. NEVER repeat the same structure or opening line. Vary your response style.
 11. If you don't know something, say so. Never make up numbers.
 12. Be warm and encouraging, but direct and honest. Talk like a friendly mentor, not a robot.
-13. For tax: reference 80C (₹1.5L), 80D (₹25-75K), 80CCD(1B) (₹50K), Section 24 (₹2L).
-14. Never recommend specific stocks. Suggest fund categories only.`;
+13. Never recommend specific stocks. Suggest fund categories only.
+14. Always use ${sym} currency symbol and ${locale} number formatting.`;
 }
 
 serve(async (req) => {
