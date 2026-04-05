@@ -115,6 +115,10 @@ export default function AiChat() {
 
   if (!isOnboarded || !userData) return <Navigate to="/" replace />;
 
+  // Set speech lang based on user's country
+  const countryLang = userData.country === "IN" ? "en-IN" : userData.country === "GB" ? "en-GB" : userData.country === "AU" ? "en-AU" : userData.country === "CA" ? "en-CA" : "en-US";
+  (window as any).__speechLang = countryLang;
+
   const speak = (text: string, index: number) => {
     if (speakingIdx === index) {
       window.speechSynthesis.cancel();
