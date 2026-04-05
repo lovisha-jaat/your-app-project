@@ -82,19 +82,8 @@ export default function TaxPlanner() {
   const country = userData.country;
   const cc = COUNTRIES[country];
   const fmt = (v: number) => formatCurrency(v, country);
-    const def = createDefaultTaxInput(country);
-    const annualIncome = userData.monthlyIncome * 12;
-    if (country === "IN") {
-      def.basicSalary = Math.round(annualIncome * 0.5);
-      def.hra = Math.round(annualIncome * 0.2);
-      def.specialAllowance = Math.round(annualIncome * 0.25);
-      def.lta = Math.round(annualIncome * 0.05);
-      def.rentPaid = Math.round(userData.monthlyExpenses * 12 * 0.3);
-    } else {
-      def.grossIncome = annualIncome;
-    }
-    return def;
-  });
+
+
 
   const update = (field: keyof TaxInput, value: string | boolean) => {
     setInput((p) => ({ ...p, [field]: typeof value === "boolean" ? value : parseFloat(value) || 0 }));
