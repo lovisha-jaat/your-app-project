@@ -263,9 +263,9 @@ export default function AiChat() {
             <Sparkles className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-base font-bold tracking-tight">MoneyWise AI</h1>
+            <h1 className="text-base font-bold tracking-tight">FinMentor AI</h1>
             <p className="text-xs text-muted-foreground">
-              Knows your ₹{userData.monthlyIncome.toLocaleString("en-IN")}/mo profile
+              Knows your {formatCurrency(userData.monthlyIncome, userData.country)}/mo profile
             </p>
           </div>
         </div>
