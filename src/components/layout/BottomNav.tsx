@@ -1,12 +1,12 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, PlusCircle, PiggyBank, BarChart3, User } from "lucide-react";
+import { LayoutDashboard, PlusCircle, PiggyBank, BarChart3, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/transactions", label: "Add", icon: PlusCircle },
   { to: "/budgets", label: "Budget", icon: BarChart3 },
-  { to: "/goals", label: "Goals", icon: PiggyBank },
+  { to: "/detective", label: "Detective", icon: Search },
   { to: "/profile", label: "Profile", icon: User },
 ];
 
