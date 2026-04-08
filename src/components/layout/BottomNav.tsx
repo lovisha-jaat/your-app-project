@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, PlusCircle, PiggyBank, BarChart3, User } from "lucide-react";
+import { LayoutDashboard, PlusCircle, PiggyBank, BarChart3, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
